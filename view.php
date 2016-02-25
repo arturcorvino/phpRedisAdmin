@@ -97,7 +97,7 @@ switch ($type) {
     $size = count($values);
     break;
 }
-  
+
 if (isset($values) && ($count_elements_page !== false)) {
   $values = array_slice($values, $count_elements_page * ($page_num_request - 1), $count_elements_page,true);
 }
@@ -189,6 +189,39 @@ if ($type == 'string') { ?>
 </div></td><td><div>
   <a href="delete.php?s=<?php echo $server['id']?>&amp;d=<?php echo $server['db']?>&amp;type=string&amp;key=<?php echo urlencode($_GET['key'])?>" class="delval"><img src="images/delete.png" width="16" height="16" title="Delete" alt="[X]"></a>
 </div></td></tr>
+<?php // Unserialize php
+  function unserialize_php($session_data) {
+    $return_data = array();
+    $offset = 0;
+    while ($offset < strlen($session_data)) {
+      if (!strstr(substr($session_data, $offset), "|")) {
+        throw new Exception("invalid data, remaining: " . substr($session_data, $offset));
+      }
+      $pos = strpos($session_data, "|", $offset);
+      $num = $pos - $offset;
+      $varname = substr($session_data, $offset, $num);
+      $offset += $num + 1;
+      $data = unserialize(substr($session_data, $offset));
+      $return_data[$varname] = $data;
+      $offset += strlen(serialize($data));
+    }
+    return $return_data;
+  }
+
+  try{
+    $tmp = null;
+    $tmp = unserialize($value);
+    $tmp = unserialize_php($tmp);
+  }
+  catch (Exception $ex) {}
+  finally {
+    if ($tmp !== null) {
+      echo '<tr><td colspan="3"><pre>';
+      print_r($tmp);
+      echo '</pre></td></tr>';
+    }
+  }
+?>
 </table>
 
 <?php }
@@ -218,7 +251,7 @@ else if ($type == 'list') { ?>
 <table>
 <tr><th><div>Index</div></th><th><div>Value</div></th><th><div>&nbsp;</div></th><th><div>&nbsp;</div></th></tr>
 
-<?php 
+<?php
   if (($count_elements_page === false) && ($size > $count_elements_page)) {
     $start = 0;
     $end   = $size;
@@ -294,4 +327,3 @@ if (isset($pagination)) {
 }
 
 require 'includes/footer.inc.php';
-

@@ -23,8 +23,11 @@ if (function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc()) {
   unset($process);
 }
 
-
-
+// set error handler
+set_error_handler(function($severity, $message, $file, $line) {
+  if (!(error_reporting() & $severity)) return;
+  throw new ErrorException($message, 0, $severity, $file, $line);
+});
 
 // These includes are needed by each script.
 if(file_exists(PHPREDIS_ADMIN_PATH . '/includes/config.inc.php')){
